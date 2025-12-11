@@ -67,13 +67,33 @@ export default function CompatibilityPage() {
   const [personA, setPersonA] = useState<BirthData>({ year: 1995, month: 1, day: 1, hour: 12, minute: 0, latitude: 0, longitude: 0 });
   const [personB, setPersonB] = useState<BirthData>({ year: 1995, month: 1, day: 1, hour: 12, minute: 0, latitude: 0, longitude: 0 });
 
+  const isValidDate = (d: BirthData) => {
+    if (!d.year || !d.month || !d.day) return false;
+    const date = new Date(d.year, d.month - 1, d.day);
+    return date.getFullYear() === d.year && date.getMonth() === d.month - 1 && date.getDate() === d.day;
+  };
+
   const handleCalculate = () => {
     setLoading(true);
+    
+    // Validation
+    if (!isValidDate(personA)) {
+      setLoading(false);
+      toast.error("Partner A's date is invalid.");
+      return;
+    }
+    if (!isValidDate(personB)) {
+      setLoading(false);
+      toast.error("Partner B's date is invalid.");
+      return;
+    }
+
     // Simulate calculation time
     setTimeout(() => {
       try {
         const res = calculateSynastry(personA, personB);
         setResult(res);
+        toast.success("Compatibility calculated!");
       } catch (e) {
         toast.error("Calculation failed. Check dates.");
       } finally {
