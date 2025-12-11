@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+/* 1. Define Brand Colors & Animations */
+@theme inline {
+  /* --- BRAND COLORS --- */
+  --color-maroon-100: #F2D7D5;
+  --color-maroon-200: #E6B0AA;
+  --color-maroon-300: #D98880;
+  --color-maroon-400: #C0392B;
+  --color-maroon-500: #A93226;
+  --color-maroon-600: #922B21;
+  --color-maroon-700: #7B241C;
+  --color-maroon-800: #641E16;
+  --color-maroon-900: #4D1611;
+
+  --color-gold-300: #F7DC6F;
+  --color-gold-400: #F1C40F;
+  --color-gold-500: #D4AC0D;
+  --color-gold-600: #B7950B;
+
+  /* --- STANDARD VARIABLES --- */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+
+  /* --- ANIMATIONS --- */
+  --animate-fade-in: fadeIn 0.8s ease-out forwards;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+}
+
+/* 2. Base Styles */
+:root {
+  --background: #ffffff;
+  --foreground: #020617; /* Slate-950 equivalent for deep contrast */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020617; /* Slate-950 */
+    --foreground: #f8fafc; /* Slate-50 */
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+}
