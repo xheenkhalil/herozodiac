@@ -15,6 +15,10 @@ export interface Article {
     file_url: string;
     alt_text_default?: string;
   };
+  categories?: {
+    name: string;
+    slug: string;
+  }[];
 }
 
 export async function getLatestPosts(limit = 6): Promise<Article[]> {
@@ -34,6 +38,26 @@ export async function getLatestPosts(limit = 6): Promise<Article[]> {
     return json.data ? json.data.slice(0, limit) : [];
   } catch (error) {
     console.error("Error fetching Quanta posts:", error);
+    return [];
+  }
+}
+
+export async function getPostsByCategory(categorySlug: string): Promise<Article[]> {
+  if (!API_KEY) return [];
+  
+  // Note: This assumes the CMS supports ?category_slug= query. 
+  // If not, we might need to fetch all and filter client-side (not efficient but safe fallback).
+  try {
+    const res = await fetch(`${API_URL}/posts?key=${API_KEY}&category_slug=${categorySlug}`, {
+      next: { revalidate: 60 },
+    });
+    
+    if (!res.ok) return [];
+    
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error("Error fetching category posts:", error);
     return [];
   }
 }

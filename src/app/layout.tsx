@@ -10,13 +10,17 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: '--font-serif'
 const inter = Inter({ subsets: ["latin"], variable: '--font-sans' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://herozodiac.vercel.app'),
   title: {
     template: '%s | HeroZodiac',
     default: 'HeroZodiac | Advanced Astrology & Horoscopes',
   },
   description: "Unveil your destiny with scientific-grade birth charts and daily cosmic insights.",
-  // Crucial for Bots to verify ownership
-  metadataBase: new URL('https://herozodiac.com'), 
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'HeroZodiac',
+  }
 };
 
 export default function RootLayout({
@@ -24,8 +28,29 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
+  // JSON-LD for "Organization" schema (Smart SEO for Knowledge Graph)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'HeroZodiac',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://herozodiac.vercel.app',
+    logo: 'https://herozodiac.vercel.app/logo.png', // Placeholder
+    sameAs: [
+      'https://twitter.com/herozodiac', 
+      'https://instagram.com/herozodiac'
+    ],
+    description: 'Advanced astrology platform providing natal charts, daily cosmic weather, and compatibility analysis.'
+  };
+
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.variable} ${playfair.variable} font-sans bg-slate-950 text-slate-100 antialiased selection:bg-maroon-900 selection:text-white`}>
         
         <Navbar />
