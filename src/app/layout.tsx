@@ -20,7 +20,12 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'HeroZodiac',
-  }
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.jpg',
+  },
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
