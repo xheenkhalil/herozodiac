@@ -156,9 +156,11 @@ export function HomeGrid({ articles }: HomeGridProps) {
                 <p className="text-slate-300 mb-6 line-clamp-2 text-sm leading-relaxed max-w-md">
                   Saturn moves into Aries soon. Discover how this major shift affects your career and relationships.
                 </p>
-                <button className="w-full sm:w-auto bg-white text-slate-950 px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition flex items-center justify-center gap-2">
-                  <Activity className="w-4 h-4" /> Read Full Report
-                </button>
+                <Link href="/transits">
+                  <button className="w-full sm:w-auto bg-white text-slate-950 px-6 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition flex items-center justify-center gap-2">
+                    <Activity className="w-4 h-4" /> Read Full Report
+                  </button>
+                </Link>
               </div>
            </div>
         </div>

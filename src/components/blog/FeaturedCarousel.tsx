@@ -29,7 +29,7 @@ export function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
   const currentPost = posts[index];
 
   return (
-    <div className="relative w-full aspect-[16/9] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl border border-white/10 group bg-slate-900">
+    <div className="relative w-full min-h-[500px] md:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl border border-white/10 group bg-slate-900">
       
       {/* BACKGROUND IMAGE SLIDE */}
       <AnimatePresence mode="wait">

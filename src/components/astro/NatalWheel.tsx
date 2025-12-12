@@ -156,40 +156,6 @@ export function NatalWheel({ planets, aspects, cusps }: NatalWheelProps) {
   return (
     <div className="natal-wheel-container relative w-full aspect-square max-w-[600px] mx-auto group" style={{ color: '#ffffff' }}>
       
-      {/* TOOLBAR */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col gap-2" data-html2canvas-ignore="true">
-         <div className="relative">
-            <button 
-              onClick={() => setShowLegend(!showLegend)}
-              className="p-2 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition shadow-lg border border-slate-700"
-              title="View Legend"
-            >
-               <Eye className="w-5 h-5" />
-            </button>
-            {showLegend && (
-               <div className="absolute left-full ml-4 top-0 bg-white p-4 rounded-xl shadow-xl border border-slate-200 w-48 text-slate-800 animate-in fade-in slide-in-from-left-2 z-50">
-                  <h4 className="border-b border-slate-100 pb-2 mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Aspect Legend</h4>
-                  <div className="space-y-2 text-xs font-medium max-h-60 overflow-y-auto custom-scrollbar">
-                     {Object.entries(ASPECT_COLORS).map(([name, color]) => (
-                        <div key={name} className="flex items-center gap-2">
-                           <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span> 
-                           <span>{name}</span>
-                        </div>
-                     ))}
-                  </div>
-               </div>
-            )}
-         </div>
-
-         <button 
-            onClick={handleDownload}
-            className="p-2 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition shadow-lg border border-slate-700"
-            title="Download Chart"
-         >
-            <Download className="w-5 h-5" />
-         </button>
-      </div>
-
       <svg viewBox={`0 0 ${size} ${size}`} className="w-full h-full font-serif rounded-full shadow-2xl border" style={{ backgroundColor: '#020617', borderColor: '#1e293b' }}>
         
         {/* 1. OUTER ZODIAC RING (Rotates relative to Fixed Axis) */}
@@ -316,6 +282,40 @@ export function NatalWheel({ planets, aspects, cusps }: NatalWheelProps) {
           );
         })}
       </svg>
+
+      {/* CONTROLS (Moved below chart for better mobile UX) */}
+      <div className="mt-6 flex justify-center gap-4 py-2" data-html2canvas-ignore="true">
+         <div className="relative">
+            <button 
+              onClick={() => setShowLegend(!showLegend)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-full hover:bg-slate-700 hover:text-white transition shadow-lg border border-slate-700 text-xs font-bold uppercase tracking-wider"
+              title="View Legend"
+            >
+               <Eye className="w-4 h-4" /> Legend
+            </button>
+            {showLegend && (
+               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white p-4 rounded-xl shadow-xl border border-slate-200 w-48 text-slate-800 animate-in fade-in slide-in-from-bottom-2 z-50">
+                  <h4 className="border-b border-slate-100 pb-2 mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Aspect Legend</h4>
+                  <div className="space-y-2 text-xs font-medium max-h-60 overflow-y-auto custom-scrollbar">
+                     {Object.entries(ASPECT_COLORS).map(([name, color]) => (
+                        <div key={name} className="flex items-center gap-2">
+                           <span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: color }}></span> 
+                           <span>{name}</span>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+            )}
+         </div>
+
+         <button 
+            onClick={handleDownload}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-gold-400 rounded-full hover:bg-slate-700 hover:text-gold-300 transition shadow-lg border border-slate-700 text-xs font-bold uppercase tracking-wider"
+            title="Download Chart"
+         >
+            <Download className="w-4 h-4" /> Save
+         </button>
+      </div>
     </div>
   );
 }

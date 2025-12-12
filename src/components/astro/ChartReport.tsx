@@ -31,7 +31,7 @@ const AspectIcon = ({ type }: { type: string }) => {
 const BigThreeItem = ({ label, value, degree, color }: { label: string, value: string, degree: number, color: string }) => (
   <div className="flex flex-col items-center group">
     <span className="text-[10px] font-bold tracking-[0.2em] text-slate-500 uppercase mb-2 group-hover:text-gold-400 transition">{label}</span>
-    <span className={`text-4xl font-serif font-bold ${color} mb-1 drop-shadow-lg`}>{value}</span>
+    <span className={`text-2xl md:text-4xl font-serif font-bold ${color} mb-1 drop-shadow-lg`}>{value}</span>
     <span className="text-xs font-mono text-slate-600">{degree.toFixed(2)}°</span>
   </div>
 );
@@ -169,7 +169,7 @@ export function ChartReport({ data, userProfile }: ChartReportProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Major Column */}
-                <div className="bg-white/5 p-8 border border-white/10 rounded-xl backdrop-blur-sm">
+                <div className="bg-white/5 p-4 md:p-8 border border-white/10 rounded-xl backdrop-blur-sm">
                     <h4 className="font-serif font-bold text-lg mb-6 text-white border-b border-white/10 pb-4 flex items-center justify-between">
                         <span>Major Aspects</span>
                         <span className="text-[10px] uppercase tracking-wider text-slate-500 font-sans font-normal">Strong Influence</span>
@@ -177,22 +177,22 @@ export function ChartReport({ data, userProfile }: ChartReportProps) {
                     <div className="space-y-4">
                         {majorAspects.length === 0 ? <p className="text-slate-500 text-sm italic">None found.</p> : majorAspects.map((aspect, i) => (
                             <div key={i} className="flex items-center justify-between text-sm group hover:bg-white/5 p-2 rounded transition -mx-2">
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
                                 <AspectIcon type={aspect.type} />
-                                <span className="text-slate-300 group-hover:text-white transition">
+                                <span className="text-slate-300 group-hover:text-white transition break-words">
                                     <span className="font-semibold">{aspect.planet1}</span>
                                     <span className="text-slate-500 mx-1.5 lowercase italic">{aspect.type}</span>
                                     <span className="font-semibold">{aspect.planet2}</span>
                                 </span>
                             </div>
-                            <span className="text-slate-600 text-xs font-mono group-hover:text-gold-500 transition">{aspect.orb}°</span>
+                            <span className="text-slate-600 text-xs font-mono group-hover:text-gold-500 transition shrink-0">{aspect.orb}°</span>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 {/* Minor Column */}
-                <div className="bg-white/5 p-8 border border-white/10 rounded-xl backdrop-blur-sm">
+                <div className="bg-white/5 p-4 md:p-8 border border-white/10 rounded-xl backdrop-blur-sm">
                     <h4 className="font-serif font-bold text-lg mb-6 text-slate-200 border-b border-white/10 pb-4 flex items-center justify-between">
                         <span>Minor Aspects</span>
                         <span className="text-[10px] uppercase tracking-wider text-slate-500 font-sans font-normal">Subtle Influence</span>
@@ -200,15 +200,15 @@ export function ChartReport({ data, userProfile }: ChartReportProps) {
                     <div className="space-y-4">
                         {minorAspects.length === 0 ? <p className="text-slate-500 text-sm italic">None found.</p> : minorAspects.map((aspect, i) => (
                             <div key={i} className="flex items-center justify-between text-sm text-slate-400 group hover:bg-white/5 p-2 rounded transition -mx-2">
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 flex items-center justify-center"><div className="w-1 h-1 bg-slate-500 rounded-full group-hover:bg-gold-400 transition" /></div>
-                                <span className="group-hover:text-slate-200 transition">
+                            <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
+                                <div className="w-4 h-4 flex items-center justify-center shrink-0"><div className="w-1 h-1 bg-slate-500 rounded-full group-hover:bg-gold-400 transition" /></div>
+                                <span className="group-hover:text-slate-200 transition break-words">
                                     <span className="font-medium text-slate-300 group-hover:text-white">{aspect.planet1}</span>
                                     <span className="text-slate-600 mx-1.5 lowercase italic">{aspect.type}</span>
                                     <span className="font-medium text-slate-300 group-hover:text-white">{aspect.planet2}</span>
                                 </span>
                             </div>
-                            <span className="text-slate-700 text-xs font-mono group-hover:text-gold-500/70 transition">{aspect.orb}°</span>
+                            <span className="text-slate-700 text-xs font-mono group-hover:text-gold-500/70 transition shrink-0">{aspect.orb}°</span>
                             </div>
                         ))}
                     </div>

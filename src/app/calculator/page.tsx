@@ -3,19 +3,19 @@
 import { useState, useEffect } from 'react';
 import { calculateChart, BirthData, ChartResult } from '@/lib/astrology';
 import { ChartReport } from '@/components/astro/ChartReport';
-import { ArrowRight, MapPin, Calendar, Clock, Loader2, Sparkles, AlertCircle, Search } from 'lucide-react';
+import { ArrowRight, MapPin, Calendar, Clock, Loader2, Sparkles, AlertCircle, Search, Crosshair } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
-// --- NEW TYPE: Location Suggestion ---
+// --- TYPE: Location Suggestion ---
 interface GeoLocation {
   id: number;
   name: string;
   latitude: number;
   longitude: number;
   country: string;
-  admin1?: string; 
-  timezone?: string; // Captured from API
+  admin1?: string;
+  timezone?: string;
 }
 
 export default function CalculatorPage() {
@@ -28,18 +28,19 @@ export default function CalculatorPage() {
     year: 1990, month: 1, day: 1,
     hour: 12, minute: 0,
     latitude: 0, longitude: 0,
-    timezone: 'UTC' // Default
+    timezone: 'UTC' 
   });
 
   const [name, setName] = useState("");
 
-  // --- NEW STATE: Location Search ---
+  // --- LOCATION STATE ---
+  const [locationMode, setLocationMode] = useState<'city' | 'coords'>('city'); // NEW: Tab State
   const [cityQuery, setCityQuery] = useState("");
   const [locations, setLocations] = useState<GeoLocation[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCityName, setSelectedCityName] = useState("");
 
-  // --- NEW FUNCTION: Fetch Cities ---
+  // --- FUNCTION: Fetch Cities ---
   useEffect(() => {
     const fetchCities = async () => {
       if (cityQuery.length < 3) {
@@ -48,7 +49,6 @@ export default function CalculatorPage() {
       }
       setIsSearching(true);
       try {
-        // Request timezone field
         const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cityQuery}&count=5&language=en&format=json&timezone=true`);
         const data = await res.json();
         if (data.results) {
@@ -63,7 +63,6 @@ export default function CalculatorPage() {
       }
     };
 
-    // Debounce to prevent too many API calls
     const timeoutId = setTimeout(fetchCities, 500); 
     return () => clearTimeout(timeoutId);
   }, [cityQuery]);
@@ -76,8 +75,33 @@ export default function CalculatorPage() {
       timezone: loc.timezone || 'UTC'
     });
     setSelectedCityName(`${loc.name}, ${loc.admin1 || ''} ${loc.country}`);
-    setCityQuery(""); // Clear search
-    setLocations([]); // Close dropdown
+    setCityQuery(""); 
+    setLocations([]); 
+  };
+
+  // --- NEW: BROWSER GEOLOCATION ---
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+    setLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData({
+          ...formData,
+          latitude: parseFloat(position.coords.latitude.toFixed(4)),
+          longitude: parseFloat(position.coords.longitude.toFixed(4))
+        });
+        toast.success("Coordinates found!");
+        setLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        toast.error("Unable to retrieve location. Please enter manually.");
+        setLoading(false);
+      }
+    );
   };
 
   // --- VALIDATION LOGIC ---
@@ -111,10 +135,18 @@ export default function CalculatorPage() {
         toast.error("Please correct the errors in the form.");
       }
     } else if (step === 2) {
-      // Validate Location
-      if (formData.latitude === 0 && formData.longitude === 0) {
-        toast.error("Please select a location from the suggestions.");
+      // VALIDATE LOCATION BASED ON MODE
+      if (locationMode === 'city' && !selectedCityName) {
+        toast.error("Please select a city or switch to coordinates mode.");
         return;
+      }
+      if (locationMode === 'coords') {
+         if (formData.latitude < -90 || formData.latitude > 90) return toast.error("Invalid Latitude (-90 to 90)");
+         if (formData.longitude < -180 || formData.longitude > 180) return toast.error("Invalid Longitude (-180 to 180)");
+         // Warn if 0,0 (Null Island) but allow it as it is technically valid
+         if (formData.latitude === 0 && formData.longitude === 0) {
+             toast('Using coordinates (0, 0)...');
+         }
       }
       calculate();
     }
@@ -174,7 +206,6 @@ export default function CalculatorPage() {
                   <span className="text-maroon-400">1.</span> Your Details
                 </h2>
 
-                {/* NAME INPUT */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Full Name</label>
                     <input 
@@ -189,8 +220,6 @@ export default function CalculatorPage() {
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest pt-4 border-t border-white/5">Birth Information</h3>
                 
                 <div className="grid grid-cols-3 gap-4">
-                  {/* ... Date Inputs ... */}
-                  {/* (Keep existing date inputs but ensure references match) */}
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase">Day</label>
                     <input type="number" min="1" max="31" placeholder="DD" className={inputClass('day')} value={formData.day} onChange={(e) => setFormData({...formData, day: parseInt(e.target.value) || 0})} />
@@ -205,7 +234,6 @@ export default function CalculatorPage() {
                   </div>
                 </div>
 
-                {/* ... Time Inputs ... */}
                  <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 uppercase">Birth Time (24h)</label>
                   <div className="flex items-center gap-2">
@@ -216,59 +244,105 @@ export default function CalculatorPage() {
                   </div>
                   {(errors.hour || errors.minute) && <div className="text-red-400 text-xs mt-1">{errors.hour || errors.minute}</div>}
                 </div>
-
               </motion.div>
             )}
 
-            {/* STEP 2: LOCATION SEARCH */}
+            {/* STEP 2: LOCATION SEARCH (UPDATED WITH TABS) */}
             {step === 2 && (
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                 <h2 className="text-2xl font-serif font-bold text-white flex items-center gap-2">
                   <MapPin className="text-maroon-400" /> Place of Birth
                 </h2>
                 
-                <div className="space-y-2 relative">
-                  <label className="text-xs font-bold text-slate-500 uppercase">City Search</label>
-                  
-                  {/* Selected Value Display */}
-                  {selectedCityName && (
-                    <div className="flex items-center justify-between bg-maroon-900/30 border border-maroon-500/50 p-3 rounded-lg mb-2">
-                        <span className="text-white text-sm font-medium">{selectedCityName}</span>
-                        <button onClick={() => { setSelectedCityName(""); setFormData({...formData, latitude:0, longitude:0}); }} className="text-xs text-maroon-300 hover:text-white underline">Change</button>
-                    </div>
-                  )}
-
-                  {/* Search Input */}
-                  {!selectedCityName && (
-                    <div className="relative">
-                        <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" />
-                        <input 
-                            type="text" 
-                            placeholder="Type city (e.g. Jos, London)..." 
-                            className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-10 p-3 text-white focus:border-gold-500 outline-none"
-                            value={cityQuery}
-                            onChange={(e) => setCityQuery(e.target.value)}
-                        />
-                        {isSearching && <Loader2 className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 animate-spin" />}
-                    </div>
-                  )}
-
-                  {/* Suggestions Dropdown */}
-                  {locations.length > 0 && !selectedCityName && (
-                    <div className="absolute z-50 left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                        {locations.map((loc) => (
-                            <button 
-                                key={loc.id} 
-                                onClick={() => handleSelectLocation(loc)}
-                                className="w-full text-left p-3 hover:bg-slate-800 text-sm text-slate-300 border-b border-slate-800 last:border-0"
-                            >
-                                <span className="font-bold text-white">{loc.name}</span>
-                                <span className="text-slate-500 ml-2 text-xs">{loc.admin1}, {loc.country}</span>
-                            </button>
-                        ))}
-                    </div>
-                  )}
+                {/* MODE TOGGLE TABS */}
+                <div className="flex p-1 bg-slate-950 rounded-lg border border-slate-800 mb-6">
+                   <button 
+                     onClick={() => setLocationMode('city')}
+                     className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition ${locationMode === 'city' ? 'bg-slate-800 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                   >
+                      Search City
+                   </button>
+                   <button 
+                     onClick={() => setLocationMode('coords')}
+                     className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition ${locationMode === 'coords' ? 'bg-slate-800 text-white shadow' : 'text-slate-500 hover:text-slate-300'}`}
+                   >
+                      Coordinates
+                   </button>
                 </div>
+
+                {/* OPTION A: CITY SEARCH */}
+                {locationMode === 'city' && (
+                  <div className="space-y-2 relative animate-in fade-in slide-in-from-left-4">
+                    <label className="text-xs font-bold text-slate-500 uppercase">City Search</label>
+                    {selectedCityName ? (
+                      <div className="flex items-center justify-between bg-maroon-900/30 border border-maroon-500/50 p-3 rounded-lg mb-2">
+                          <span className="text-white text-sm font-medium">{selectedCityName}</span>
+                          <button onClick={() => { setSelectedCityName(""); setFormData({...formData, latitude:0, longitude:0}); }} className="text-xs text-maroon-300 hover:text-white underline">Change</button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                          <Search className="absolute left-3 top-3.5 w-4 h-4 text-slate-500" />
+                          <input 
+                              type="text" 
+                              placeholder="Type city (e.g. Jos, London)..." 
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg pl-10 p-3 text-white focus:border-gold-500 outline-none"
+                              value={cityQuery}
+                              onChange={(e) => setCityQuery(e.target.value)}
+                          />
+                          {isSearching && <Loader2 className="absolute right-3 top-3.5 w-4 h-4 text-slate-500 animate-spin" />}
+                      </div>
+                    )}
+                    {locations.length > 0 && !selectedCityName && (
+                      <div className="absolute z-50 left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                          {locations.map((loc) => (
+                              <button 
+                                  key={loc.id} 
+                                  onClick={() => handleSelectLocation(loc)}
+                                  className="w-full text-left p-3 hover:bg-slate-800 text-sm text-slate-300 border-b border-slate-800 last:border-0"
+                              >
+                                  <span className="font-bold text-white">{loc.name}</span>
+                                  <span className="text-slate-500 ml-2 text-xs">{loc.admin1}, {loc.country}</span>
+                              </button>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* OPTION B: COORDINATES */}
+                {locationMode === 'coords' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                     <div className="flex justify-between items-center">
+                        <label className="text-xs font-bold text-slate-500 uppercase">Exact Coordinates</label>
+                        <button onClick={handleUseCurrentLocation} className="text-xs flex items-center gap-1 text-gold-400 hover:text-white transition">
+                           <Crosshair className="w-3 h-3" /> Use Current Location
+                        </button>
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="text-[10px] text-slate-600 uppercase mb-1 block">Latitude</label>
+                           <input 
+                              type="number" step="0.0001" placeholder="0.0000"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-gold-500 outline-none"
+                              value={formData.latitude || ''}
+                              onChange={(e) => setFormData({...formData, latitude: parseFloat(e.target.value) || 0})}
+                           />
+                        </div>
+                        <div>
+                           <label className="text-[10px] text-slate-600 uppercase mb-1 block">Longitude</label>
+                           <input 
+                              type="number" step="0.0001" placeholder="0.0000"
+                              className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-gold-500 outline-none"
+                              value={formData.longitude || ''}
+                              onChange={(e) => setFormData({...formData, longitude: parseFloat(e.target.value) || 0})}
+                           />
+                        </div>
+                     </div>
+                     <p className="text-xs text-slate-500 italic">
+                        Tip: You can find exact coords on Google Maps by right-clicking a location.
+                     </p>
+                  </div>
+                )}
                 
                 <div className="p-4 bg-maroon-900/20 border border-maroon-500/30 rounded-lg text-maroon-200 text-sm flex gap-3">
                   <Sparkles className="w-5 h-5 shrink-0 mt-0.5" />
@@ -297,12 +371,12 @@ export default function CalculatorPage() {
 
         {step === 3 && result && (
            <ChartReport 
-              data={result} 
-              userProfile={{
+             data={result} 
+             userProfile={{
                  name: name || "Traveler",
-                 location: selectedCityName || "Unknown Location",
+                 location: selectedCityName || (locationMode === 'coords' ? `${formData.latitude}, ${formData.longitude}` : "Unknown Location"),
                  date: `${formData.day}/${formData.month}/${formData.year} at ${formData.hour}:${formData.minute.toString().padStart(2,'0')}`
-              }}
+             }}
            />
         )}
 
