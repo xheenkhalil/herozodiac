@@ -17,9 +17,9 @@ export function HeroSection() {
           }}
         />
 
-        {/* Central starburst / lens flare glow */}
+        {/* Central starburst / lens flare glow - DESKTOP ONLY */}
         <div 
-          className="absolute inset-0 opacity-90"
+          className="hidden lg:block absolute inset-0 opacity-90"
           style={{
             background: 'radial-gradient(circle at 49% 68%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 210, 220, 0.7) 1.5%, rgba(190, 40, 65, 0.45) 5%, transparent 16%)'
           }}
@@ -42,8 +42,8 @@ export function HeroSection() {
           }}
         />
 
-        {/* AUTHENTIC CELESTIAL ASTROLABE ZODIAC WHEEL */}
-        <div className="absolute right-[0%] sm:right-[2%] md:right-[4%] lg:right-[6%] xl:right-[8%] top-[55%] -translate-y-1/2 w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] md:w-[420px] md:h-[420px] lg:w-[460px] lg:h-[460px] xl:w-[490px] xl:h-[490px] max-h-[72vh] pointer-events-none select-none">
+        {/* AUTHENTIC CELESTIAL ASTROLABE ZODIAC WHEEL - DESKTOP FIXED ON RIGHT */}
+        <div className="hidden lg:block absolute lg:right-[6%] xl:right-[8%] top-[55%] -translate-y-1/2 lg:w-[460px] lg:h-[460px] xl:w-[490px] xl:h-[490px] max-h-[72vh] pointer-events-none select-none">
           <div className="w-full h-full opacity-85">
             <CelestialWheel className="w-full h-full text-[#D4AF37]" />
           </div>
@@ -52,21 +52,21 @@ export function HeroSection() {
 
       {/* HERO CONTENT CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-        <div className="max-w-2xl text-left py-10">
+        <div className="max-w-2xl text-left py-6 sm:py-8 lg:py-10">
           
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-white font-light tracking-wide mb-1">
             Welcome to
           </h2>
           
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-[#A82238] mb-5 tracking-tight drop-shadow-sm">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-[#A82238] mb-4 sm:mb-5 tracking-tight drop-shadow-sm">
             HeroZodiac
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-stone-300 font-sans leading-relaxed mb-8 max-w-xl font-normal">
+          <p className="text-base sm:text-lg md:text-xl text-stone-300 font-sans leading-relaxed mb-6 sm:mb-8 max-w-xl font-normal">
             Explore yourself through astrology, personality, numerology, archetypes and more.
           </p>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             <Link href="/zodiac">
               <button className="h-11 sm:h-12 px-6 sm:px-7 rounded-lg bg-[#7B1123] hover:bg-[#9E1B32] text-white font-medium text-xs sm:text-sm flex items-center gap-2.5 transition-all shadow-lg hover:shadow-[#7B1123]/40 cursor-pointer">
                 <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5 text-white" />
@@ -80,6 +80,15 @@ export function HeroSection() {
                 <span>Create Your Profile</span>
               </button>
             </Link>
+          </div>
+
+          {/* MOBILE CELESTIAL ASTROLABE WHEEL - CENTERED & PROUDLY DISPLAYED BELOW BUTTONS */}
+          <div className="block lg:hidden relative mx-auto mt-8 sm:mt-10 mb-2 w-[270px] h-[270px] sm:w-[320px] sm:h-[320px] select-none pointer-events-none">
+            {/* Ambient golden & crimson aura */}
+            <div className="absolute inset-[-10%] rounded-full bg-gradient-to-tr from-[#7B1123]/35 via-[#D4AF37]/15 to-transparent blur-2xl pointer-events-none" />
+            <div className="relative w-full h-full opacity-90 drop-shadow-2xl">
+              <CelestialWheel className="w-full h-full text-[#D4AF37]" />
+            </div>
           </div>
 
         </div>
