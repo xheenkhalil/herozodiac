@@ -30,8 +30,7 @@ export function getDailyHoroscopes() {
     // House is 1-based (0 index = 1st house)
     const houseNumber = houseDiff + 1; 
     
-    // @ts-ignore
-    const content = HOUSE_THEMES[houseNumber];
+    const content = (HOUSE_THEMES as Record<number, { title: string; advice: string }>)[houseNumber] || HOUSE_THEMES[1];
 
     return {
       sign: userSign,

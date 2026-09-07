@@ -2,104 +2,202 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ChevronDown, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FontAwesomeIcon,
+  faCompass,
+  faBars,
+  faXmark,
+  faUser
+} from '@/components/ui/Icons';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Calculator', href: '/calculator' },
-    { name: 'Blog', href: '/blog' },
-    // Placeholder for Categories Dropdown later
-    { name: 'About', href: '/about' }, 
+  const navItems = [
+    { name: 'Home', href: '/', hasDropdown: false },
+    { name: 'Horoscope', href: '/horoscope', hasDropdown: false },
+    { 
+      name: 'Astrology', 
+      href: '/zodiac', 
+      hasDropdown: true,
+      items: [
+        { name: '12 Zodiac Signs', href: '/zodiac' },
+        { name: 'Natal Birth Chart', href: '/calculator' },
+        { name: 'Love Compatibility', href: '/compatibility' },
+        { name: 'Planetary Transits', href: '/transits' },
+      ]
+    },
+    { 
+      name: 'Tests', 
+      href: '/tests', 
+      hasDropdown: true,
+      items: [
+        { name: 'MBTI Personality Test', href: '/tests/mbti' },
+        { name: 'Archetype Discovery', href: '/tests/archetype' },
+      ]
+    },
+    { 
+      name: 'Guides', 
+      href: '/tarot', 
+      hasDropdown: true,
+      items: [
+        { name: 'Tarot Card Readings', href: '/tarot' },
+        { name: 'Numerology Calculator', href: '/numerology' },
+        { name: 'Palmistry & Hand Analysis', href: '/palmistry' },
+      ]
+    },
+    { 
+      name: 'Tools', 
+      href: '/calculator', 
+      hasDropdown: true,
+      items: [
+        { name: 'Birth Chart Calculator', href: '/calculator' },
+        { name: 'Compatibility Matcher', href: '/compatibility' },
+        { name: 'Transit Radar', href: '/transits' },
+      ]
+    },
+    { name: 'Blog', href: '/blog', hasDropdown: false },
   ];
 
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+
   return (
-    <nav 
+    <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-slate-950/90 backdrop-blur-md border-b border-white/10 py-5' : 'bg-transparent py-8'
+        scrolled
+          ? 'bg-[#090507]/95 backdrop-blur-md border-b border-white/10 py-3 shadow-lg'
+          : 'bg-[#090507] border-b border-white/5 py-3.5'
       }`}
     >
-      <div className="container mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         
-        {/* 1. LOGO */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-maroon-600 to-maroon-900 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-gold-500/50 transition shadow-lg shadow-maroon-900/20">
-            <span className="font-serif font-bold text-white text-lg">H</span>
+        {/* LOGO */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-[#9E1B32]/60 shadow-md relative group-hover:scale-105 transition-transform bg-[#090507] shrink-0">
+            <Image
+              src="/logo.jpg"
+              alt="HeroZodiac Logo"
+              width={32}
+              height={32}
+              className="w-full h-full object-cover"
+              priority
+            />
           </div>
-          <span className="font-serif font-bold text-2xl text-white tracking-tight">
-            Hero<span className="text-gold-500">Zodiac</span>
+          <span className="font-serif font-bold text-lg sm:text-xl tracking-[0.18em] text-white">
+            HEROZODIAC
           </span>
         </Link>
 
-        {/* 2. DESKTOP LINKS */}
-        <div className="hidden md:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href}
-              className={`text-base font-medium transition-colors hover:text-gold-400 ${
-                pathname === link.href ? 'text-white' : 'text-slate-400'
-              }`}
-            >
-              {link.name}
-            </Link>
-          ))}
+        {/* DESKTOP NAV LINKS */}
+        <div className="hidden lg:flex items-center gap-7">
+          {navItems.map((item) => {
+            const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+
+            return (
+              <div
+                key={item.name}
+                className="relative"
+                onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.name)}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <Link
+                  href={item.href}
+                  className={`text-[13px] font-medium transition-colors flex items-center gap-1.5 py-1 ${
+                    isActive
+                      ? 'text-[#D9536F] border-b border-[#D9536F] pb-0.5'
+                      : 'text-stone-300 hover:text-white'
+                  }`}
+                >
+                  <span>{item.name}</span>
+                  {item.hasDropdown && (
+                    <span className="text-[9px] opacity-70">∨</span>
+                  )}
+                </Link>
+
+                {/* DROPDOWN MENU */}
+                {item.hasDropdown && activeDropdown === item.name && (
+                  <div className="absolute top-full left-0 mt-2 w-52 py-2 bg-[#140B10] border border-white/10 rounded-lg shadow-xl z-50 animate-fade-in">
+                    {item.items?.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        href={sub.href}
+                        className="block px-4 py-2 text-xs text-stone-300 hover:text-white hover:bg-[#7B1123]/30 transition"
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* 3. CTA BUTTON */}
-        <div className="hidden md:block">
-          <Link href="/calculator">
-            <button className="bg-white text-slate-950 px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-gold-400 transition flex items-center gap-2 shadow-lg hover:shadow-gold-500/20">
-              <Sparkles className="w-4 h-4" /> Get Chart
+        {/* RIGHT CTA & MOON ICON */}
+        <div className="hidden lg:flex items-center gap-5">
+          {/* Moon Icon */}
+          <button className="text-stone-300 hover:text-white transition p-1 cursor-pointer" aria-label="Theme">
+            <span className="text-sm">☾</span>
+          </button>
+
+          {/* Sign In Button */}
+          <Link href="/login">
+            <button className="bg-[#7B1123] hover:bg-[#9E1B32] text-white px-5 py-2 rounded-lg text-xs sm:text-[13px] font-semibold transition shadow-md cursor-pointer">
+              Sign In
             </button>
           </Link>
         </div>
 
-        {/* 4. MOBILE MENU TOGGLE */}
-        <button 
-          className="md:hidden text-white"
+        {/* MOBILE MENU TOGGLE */}
+        <button
+          className="lg:hidden text-stone-200 p-2 hover:text-white"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Toggle navigation menu"
         >
-          {isOpen ? <X /> : <Menu />}
+          <FontAwesomeIcon icon={isOpen ? faXmark : faBars} className="w-5 h-5" />
         </button>
       </div>
 
       {/* MOBILE MENU DROPDOWN */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-slate-950 border-b border-white/10 overflow-hidden"
+            className="lg:hidden bg-[#0B080A] border-b border-white/10 overflow-hidden"
           >
-            <div className="flex flex-col p-6 space-y-4">
-              {navLinks.map((link) => (
-                <Link 
-                  key={link.name} 
+            <div className="flex flex-col p-6 space-y-3">
+              {navItems.map((link) => (
+                <Link
+                  key={link.name}
                   href={link.href}
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-serif text-slate-300 hover:text-gold-400"
+                  className={`text-sm font-medium py-1.5 ${
+                    pathname.startsWith(link.href) ? 'text-[#D9536F]' : 'text-stone-300 hover:text-white'
+                  }`}
                 >
                   {link.name}
                 </Link>
               ))}
-              <hr className="border-white/10 my-4" />
-              <Link href="/contact" onClick={() => setIsOpen(false)} className="text-sm text-slate-500">Contact Support</Link>
-              <Link href="/privacy" onClick={() => setIsOpen(false)} className="text-sm text-slate-500">Privacy Policy</Link>
+              <div className="pt-4 border-t border-white/10 flex flex-col gap-2">
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  <button className="w-full bg-[#7B1123] hover:bg-[#9E1B32] text-white py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+                    Sign In
+                  </button>
+                </Link>
+              </div>
             </div>
           </motion.div>
         )}

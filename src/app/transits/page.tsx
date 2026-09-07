@@ -1,12 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { calculateChart } from '@/lib/astrology';
 import { NatalWheel } from '@/components/astro/NatalWheel';
 import { PlanetGlyph } from '@/components/astro/PlanetGlyph';
-import { AlertTriangle, CheckCircle, Loader2 } from 'lucide-react';
+import {
+  FontAwesomeIcon,
+  faRotateRight,
+  faCircleCheck,
+  faInfoCircle,
+  faSun
+} from '@/components/ui/Icons';
 
-// --- 1. MOON PHASE LOGIC (Unchanged) ---
 interface MoonPhase {
   name: string;
   type: string;
@@ -27,7 +33,6 @@ function getMoonPhase(sunDeg: number, moonDeg: number): MoonPhase {
   return { name: "New Moon", type: 'new' };
 }
 
-// --- 2. MOON VISUAL (Unchanged) ---
 const MoonVisual = ({ type }: { type: string }) => {
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]">
@@ -43,15 +48,10 @@ const MoonVisual = ({ type }: { type: string }) => {
   );
 };
 
-// --- 3. RETROGRADE CHECKER (FIXED) ---
 function checkRetrogrades(baseData: any): string[] {
   const retrogrades: string[] = [];
-  
-  // 1. Calculate NOW
   const nowChart = calculateChart(baseData);
   
-  // 2. Calculate PAST (24 Hours ago for robust detection of slow planets)
-  // FIX: We must recreate the full date object to handle day/month boundaries correctly
   const currentDateObj = new Date(baseData.year, baseData.month - 1, baseData.day, baseData.hour, baseData.minute);
   const pastDateObj = new Date(currentDateObj);
   pastDateObj.setHours(pastDateObj.getHours() - 24); 
@@ -63,43 +63,42 @@ function checkRetrogrades(baseData: any): string[] {
     hour: pastDateObj.getHours(),
     minute: pastDateObj.getMinutes(),
     latitude: baseData.latitude,
-    longitude: baseData.longitude
+    longitude: baseData.longitude,
+    timezone: baseData.timezone
   };
-  
+
   const pastChart = calculateChart(pastData);
 
-  // 3. Compare Positions
-  nowChart.planets.forEach(p => {
-    // Skip Sun, Moon, Ascendant, MC (They are never Retrograde)
-    if (['Sun', 'Moon', 'Asc', 'MC'].includes(p.name)) return;
-    
-    const pPast = pastChart.planets.find(pp => pp.name === p.name);
-    if (!pPast) return;
+  const majorBodies = ['Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 
-    let diff = p.absoluteDegree - pPast.absoluteDegree;
-    
-    // Handle 360-degree wrap around (e.g., Pisces to Aries)
-    if (diff < -300) diff += 360; 
-    if (diff > 300) diff -= 360;
+  majorBodies.forEach(name => {
+    const currentPlanet = nowChart.planets.find((p: any) => p.name === name);
+    const pastPlanet = pastChart.planets.find((p: any) => p.name === name);
 
-    // If degree decreased over the last 24h, it is Retrograde
-    if (diff < 0) retrogrades.push(p.name);
+    if (currentPlanet && pastPlanet) {
+      let diff = currentPlanet.absoluteDegree - pastPlanet.absoluteDegree;
+      if (diff < -180) diff += 360;
+      if (diff > 180) diff -= 360;
+
+      if (diff < 0) {
+        retrogrades.push(name);
+      }
+    }
   });
-  
+
   return retrogrades;
 }
 
 export default function TransitsPage() {
-  const [mounted, setMounted] = useState(false);
   const [chartData, setChartData] = useState<any>(null);
-  const [moonPhase, setMoonPhase] = useState<MoonPhase>({ name: '', type: '' });
+  const [moonPhase, setMoonPhase] = useState<MoonPhase>({ name: "Loading...", type: "new" });
   const [retrogrades, setRetrogrades] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const now = new Date();
     
-    // Use UTC for consistent Universal Time calculations
     const birthData = {
       year: now.getUTCFullYear(), 
       month: now.getUTCMonth() + 1, 
@@ -110,19 +109,17 @@ export default function TransitsPage() {
       longitude: 0
     };
 
-    // Calculate Chart
     const calculatedChart = calculateChart(birthData);
     setChartData(calculatedChart);
     
-    // Derived Data
     setMoonPhase(getMoonPhase(calculatedChart.sun.absoluteDegree, calculatedChart.moon.absoluteDegree));
-    setRetrogrades(checkRetrogrades(birthData)); // <-- Uses the fixed function
+    setRetrogrades(checkRetrogrades(birthData));
   }, []);
 
   if (!mounted || !chartData) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-200 flex items-center justify-center">
-         <Loader2 className="w-8 h-8 text-gold-500 animate-spin" />
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+         <FontAwesomeIcon icon={faRotateRight} className="w-8 h-8 text-[#7B1123] animate-spin" />
       </div>
     );
   }
@@ -131,61 +128,76 @@ export default function TransitsPage() {
   const outerPlanets = chartData.planets.filter((p: any) => !['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Asc', 'MC', 'Chiron', 'North Node'].includes(p.name));
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
+    <div className="min-h-screen bg-stone-50 text-stone-900 pt-28 pb-24 font-sans">
       
+      {/* BREADCRUMB */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex items-center gap-2 text-xs text-stone-500 mb-8">
+          <Link href="/" className="hover:text-stone-900 transition">Home</Link>
+          <span>/</span>
+          <Link href="/astrology" className="hover:text-stone-900 transition">Astrology</Link>
+          <span>/</span>
+          <span className="text-[#7B1123] font-bold">Daily Sky Transits</span>
+        </nav>
+      </div>
+
       {/* HEADER */}
-      <header className="py-20 text-center px-6 border-b border-white/5 bg-slate-900/50">
-        <h1 className="text-4xl md:text-5xl font-serif font-bold text-white mb-4">
-          Daily <span className="text-gold-500">Cosmic Weather</span>
+      <header className="text-center px-4 sm:px-6 max-w-3xl mx-auto mb-12">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#7B1123]/10 text-[#7B1123] text-xs font-bold mb-4 border border-[#7B1123]/20">
+          <FontAwesomeIcon icon={faSun} className="w-3.5 h-3.5" />
+          <span>Real-Time Astronomical Ephemeris</span>
+        </div>
+        <h1 className="text-3xl sm:text-5xl font-serif font-bold text-stone-900 mb-3">
+          Daily <span className="text-[#7B1123]">Cosmic Weather</span>
         </h1>
-        <p className="text-slate-400">Current planetary positions and retrograde status.</p>
+        <p className="text-sm sm:text-base text-stone-600">
+          Current planetary sky positions, lunar phases, and retrograde status calculated for Universal Time.
+        </p>
       </header>
 
-      <main className="container mx-auto px-6 py-12 max-w-6xl">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* TOP ROW: MOON & RETROGRADES */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
           
-          {/* UPDATED MOON WIDGET */}
-          <div className="bg-slate-900 border border-white/10 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden group">
-             {/* Glow effect based on fullness */}
-             <div className={`absolute inset-0 bg-blue-500/5 transition duration-700 ${moonPhase.type === 'full' ? 'opacity-100' : 'opacity-20'}`} />
-             
+          {/* MOON WIDGET */}
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 flex items-center justify-between shadow-sm relative overflow-hidden">
              <div>
-                <div className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Current Phase</div>
-                <h3 className="text-3xl font-serif font-bold text-white mb-2">{moonPhase.name}</h3>
-                <p className="text-sm text-slate-400 max-w-[200px]">
-                  {moonPhase.type.includes('waxing') ? 'Energy is building. Good for taking action.' : 
-                   moonPhase.type.includes('waning') ? 'Energy is fading. Good for release and rest.' :
-                   moonPhase.type === 'full' ? 'Peak energy. High emotion and realization.' : 
-                   'Low energy. Set intentions for the cycle ahead.'}
+                <div className="text-xs font-bold text-[#7B1123] uppercase tracking-widest mb-2">Current Lunar Phase</div>
+                <h3 className="text-3xl font-serif font-bold text-stone-900 mb-2">{moonPhase.name}</h3>
+                <p className="text-xs text-stone-600 max-w-[220px] leading-relaxed">
+                  {moonPhase.type.includes('waxing') ? 'Energy is building. Ideal for taking bold action.' : 
+                   moonPhase.type.includes('waning') ? 'Energy is fading. Favorable for release and rest.' :
+                   moonPhase.type === 'full' ? 'Peak illumination. High emotion and realization.' : 
+                   'Low light. Set clear intentions for the cycle ahead.'}
                 </p>
              </div>
              
-             <div className="w-24 h-24 shrink-0">
+             <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0">
                 <MoonVisual type={moonPhase.type} />
              </div>
           </div>
 
           {/* Retrograde Monitor */}
-          <div className="bg-slate-900 border border-white/10 rounded-2xl p-8">
+          <div className="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm">
              <div className="flex items-center justify-between mb-6">
-               <div className="text-xs font-bold text-red-400 uppercase tracking-widest">Retrograde Monitor</div>
-               <span className="text-xs font-mono text-slate-500">{new Date().toLocaleDateString()}</span>
+               <div className="text-xs font-bold text-[#7B1123] uppercase tracking-widest">Retrograde Monitor</div>
+               <span className="text-xs font-mono text-stone-400">{new Date().toLocaleDateString()}</span>
              </div>
              
              {retrogrades.length === 0 ? (
-               <div className="flex items-center gap-3 text-green-400">
-                  <CheckCircle className="w-6 h-6" />
-                  <span className="font-bold">All major planets are Direct.</span>
+               <div className="flex items-center gap-3 text-emerald-700">
+                  <FontAwesomeIcon icon={faCircleCheck} className="w-5 h-5" />
+                  <span className="font-serif font-bold text-base">All major planets are currently Direct.</span>
                </div>
              ) : (
                <div className="space-y-3">
-                 <p className="text-sm text-slate-400 mb-2">Caution advised. The following planets are currently retrograde:</p>
+                 <p className="text-xs text-stone-600 mb-2">The following planets are in apparent retrograde motion:</p>
                  <div className="flex flex-wrap gap-2">
                     {retrogrades.map(name => (
-                      <span key={name} className="flex items-center gap-2 px-3 py-2 bg-slate-950 rounded-lg border border-red-500/20 text-red-200 text-sm font-bold animate-pulse">
-                        <AlertTriangle className="w-3 h-3" /> {name}
+                      <span key={name} className="flex items-center gap-2 px-3 py-1.5 bg-[#7B1123]/10 rounded-lg border border-[#7B1123]/20 text-[#7B1123] text-xs font-bold">
+                        <FontAwesomeIcon icon={faInfoCircle} className="w-3 h-3" />
+                        <span>{name} (Rx)</span>
                       </span>
                     ))}
                  </div>
@@ -195,14 +207,14 @@ export default function TransitsPage() {
         </div>
 
         {/* MIDDLE ROW: LIVE CHART & PLANETS LIST */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
            
            {/* Live Wheel */}
-           <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="bg-white/5 rounded-full p-4 mb-4">
+           <div className="lg:col-span-5 flex flex-col items-center bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+              <div className="p-2 mb-2">
                  <NatalWheel planets={chartData.planets} aspects={chartData.aspects} />
               </div>
-              <p className="text-xs text-slate-500 mt-4">Chart calculated for UTC (Universal Time)</p>
+              <p className="text-xs text-stone-500 mt-2">Current Sky Wheel (Universal Time)</p>
            </div>
 
            {/* Planets List */}
@@ -210,19 +222,19 @@ export default function TransitsPage() {
               
               {/* Personal Planets */}
               <div>
-                 <h3 className="font-serif font-bold text-xl text-white mb-4 border-b border-white/10 pb-2">Personal Planets</h3>
+                 <h3 className="font-serif font-bold text-xl text-stone-900 mb-4 border-b border-stone-200 pb-2">Personal Planets</h3>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {keyPlanets.map((p: any) => (
-                      <div key={p.name} className="flex items-center justify-between bg-slate-900/50 p-4 rounded-xl border border-white/5">
+                      <div key={p.name} className="flex items-center justify-between bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-white/5">
-                               <PlanetGlyph name={p.name} className="w-5 h-5 text-gold-400" />
+                            <div className="w-9 h-9 rounded-lg bg-[#7B1123]/10 flex items-center justify-center">
+                               <PlanetGlyph name={p.name} className="w-5 h-5 text-[#7B1123]" />
                             </div>
-                            <span className="font-bold text-slate-200">{p.name}</span>
+                            <span className="font-serif font-bold text-sm text-stone-900">{p.name}</span>
                          </div>
                          <div className="text-right">
-                            <div className="text-maroon-400 font-serif font-medium">{p.sign}</div>
-                            <div className="text-[10px] text-slate-500">{p.degree.toFixed(1)}°</div>
+                            <div className="text-[#7B1123] font-serif font-bold text-sm">{p.sign}</div>
+                            <div className="text-[10px] text-stone-500">{p.degree.toFixed(1)}°</div>
                          </div>
                       </div>
                     ))}
@@ -231,17 +243,17 @@ export default function TransitsPage() {
 
               {/* Outer Planets */}
               <div>
-                 <h3 className="font-serif font-bold text-xl text-white mb-4 border-b border-white/10 pb-2">Outer Planets</h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                 <h3 className="font-serif font-bold text-xl text-stone-900 mb-4 border-b border-stone-200 pb-2">Outer Planets</h3>
+                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {outerPlanets.map((p: any) => (
-                      <div key={p.name} className="bg-slate-900/30 p-3 rounded-lg border border-white/5 text-sm flex items-center justify-between gap-2">
+                      <div key={p.name} className="bg-white p-3.5 rounded-xl border border-stone-200 text-xs flex items-center justify-between gap-2 shadow-sm">
                          <div className="flex items-center gap-2">
-                            <PlanetGlyph name={p.name} className="w-4 h-4 text-slate-500" />
-                            <span className="text-slate-400">{p.name}</span>
+                            <PlanetGlyph name={p.name} className="w-4 h-4 text-stone-400" />
+                            <span className="text-stone-700 font-medium">{p.name}</span>
                          </div>
-                         <div className="flex items-center gap-2">
-                            {retrogrades.includes(p.name) && <span className="text-[10px] text-red-400 font-bold">Rx</span>}
-                            <div className="font-bold text-white">{p.sign}</div>
+                         <div className="flex items-center gap-1.5">
+                            {retrogrades.includes(p.name) && <span className="text-[10px] text-[#7B1123] font-bold">Rx</span>}
+                            <div className="font-serif font-bold text-stone-900">{p.sign}</div>
                          </div>
                       </div>
                     ))}

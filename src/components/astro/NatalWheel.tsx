@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { PlanetPosition, Aspect } from '@/lib/astrology';
-import { Download, Eye } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'sonner';
 
 interface NatalWheelProps {
@@ -288,14 +289,14 @@ export function NatalWheel({ planets, aspects, cusps }: NatalWheelProps) {
          <div className="relative">
             <button 
               onClick={() => setShowLegend(!showLegend)}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 rounded-full hover:bg-slate-700 hover:text-white transition shadow-lg border border-slate-700 text-xs font-bold uppercase tracking-wider"
+              className="flex items-center gap-2 px-4 py-2 bg-stone-800 text-stone-200 rounded-lg hover:bg-stone-700 hover:text-white transition shadow-lg border border-stone-700 text-xs font-bold uppercase tracking-wider"
               title="View Legend"
             >
-               <Eye className="w-4 h-4" /> Legend
+               <FontAwesomeIcon icon={faEye} className="w-3.5 h-3.5" /> Legend
             </button>
             {showLegend && (
-               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white p-4 rounded-xl shadow-xl border border-slate-200 w-48 text-slate-800 animate-in fade-in slide-in-from-bottom-2 z-50">
-                  <h4 className="border-b border-slate-100 pb-2 mb-2 text-xs font-bold uppercase tracking-wider text-slate-500">Aspect Legend</h4>
+               <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 bg-white p-4 rounded-xl shadow-xl border border-stone-200 w-48 text-stone-800 animate-in fade-in slide-in-from-bottom-2 z-50">
+                  <h4 className="border-b border-stone-100 pb-2 mb-2 text-xs font-bold uppercase tracking-wider text-stone-500">Aspect Legend</h4>
                   <div className="space-y-2 text-xs font-medium max-h-60 overflow-y-auto custom-scrollbar">
                      {Object.entries(ASPECT_COLORS).map(([name, color]) => (
                         <div key={name} className="flex items-center gap-2">
@@ -310,10 +311,10 @@ export function NatalWheel({ planets, aspects, cusps }: NatalWheelProps) {
 
          <button 
             onClick={handleDownload}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-gold-400 rounded-full hover:bg-slate-700 hover:text-gold-300 transition shadow-lg border border-slate-700 text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 px-4 py-2 bg-stone-800 text-amber-400 rounded-lg hover:bg-stone-700 hover:text-amber-300 transition shadow-lg border border-stone-700 text-xs font-bold uppercase tracking-wider"
             title="Download Chart"
          >
-            <Download className="w-4 h-4" /> Save
+            <FontAwesomeIcon icon={faDownload} className="w-3.5 h-3.5" /> Save
          </button>
       </div>
     </div>

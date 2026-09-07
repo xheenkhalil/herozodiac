@@ -86,14 +86,12 @@ function getUtcDate(data: BirthData): Date {
   return guess;
 }
 
-const ZODIAC_SIGNS = [
+export const ZODIAC_SIGNS = [
   'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
   'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
 ];
 
-
-
-function getZodiacInfo(longitude: number) {
+export function getZodiacInfo(longitude: number) {
   let lng = longitude % 360;
   if (lng < 0) lng += 360;
   const signIndex = Math.floor(lng / 30);

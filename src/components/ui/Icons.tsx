@@ -1,0 +1,62 @@
+// src/components/ui/Icons.tsx
+'use client';
+
+export { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+export {
+  faCompass,
+  faBars,
+  faXmark,
+  faChevronDown,
+  faChevronLeft,
+  faChevronRight,
+  faMoon,
+  faSun,
+  faUser,
+  faArrowRight,
+  faArrowLeft,
+  faArrowUpRightFromSquare,
+  faStar,
+  faWandMagicSparkles,
+  faHeart,
+  faEye,
+  faBookOpen,
+  faHand,
+  faCalculator,
+  faRotateRight,
+  faCalendarDays,
+  faClock,
+  faLocationDot,
+  faShieldHalved,
+  faQuoteLeft,
+  faCircleCheck,
+  faCheck,
+  faFeatherPointed,
+  faMagnifyingGlass,
+  faShareNodes,
+  faBrain,
+  faCrown,
+  faBolt,
+  faMasksTheater,
+  faUsers,
+  faSunPlantWilt,
+  faHatWizard,
+  faFire,
+  faWater,
+  faWind,
+  faMountain,
+  faInfoCircle,
+  faLock,
+  faEnvelope,
+  faDownload,
+  faFileLines,
+  faChartPie
+} from '@fortawesome/free-solid-svg-icons';
+
+export {
+  faFacebook,
+  faInstagram,
+  faYoutube,
+  faPinterest,
+  faTwitter,
+  faXTwitter
+} from '@fortawesome/free-brands-svg-icons';

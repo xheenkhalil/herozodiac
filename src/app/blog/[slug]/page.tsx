@@ -1,26 +1,41 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getPostBySlug } from '@/lib/quanta';
+import { getEditorialArticleBySlug, convertEditorialToQuantaArticle } from '@/data/fallback-articles';
 import { ContentRenderer } from '@/components/blog/ContentRenderer';
 import { AdSpot } from '@/components/ads/AdSpot';
-import { ArrowLeft, Calendar, User, Clock, Share2 } from 'lucide-react';
+import {
+  FontAwesomeIcon,
+  faArrowLeft,
+  faCalendarDays,
+  faUser,
+  faClock,
+  faShareNodes
+} from '@/components/ui/Icons';
 import Link from 'next/link';
 
-// 1. UPDATE: Params type must be a Promise in newer Next.js
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  // Await params first
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug); // Decode URL to string
+  const decodedSlug = decodeURIComponent(slug);
   
-  const post = await getPostBySlug(decodedSlug);
-  if (!post) return { title: 'Article Not Found' };
+  let post = null;
+  try {
+    post = await getPostBySlug(decodedSlug);
+  } catch (e) {}
+
+  if (!post) {
+    const fallback = getEditorialArticleBySlug(decodedSlug);
+    if (fallback) post = convertEditorialToQuantaArticle(fallback);
+  }
+
+  if (!post) return { title: 'Article Not Found | HeroZodiac' };
 
   return {
-    title: `${post.title} | HeroZodiac`,
+    title: `${post.title} | HeroZodiac Editorial`,
     description: post.excerpt,
     openGraph: {
       title: post.title,
@@ -33,11 +48,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function BlogPost({ params }: Props) {
-  // 2. UPDATE: Await params here too
   const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug); // Handle "21-secrets%20of..." -> "21-secrets of..."
+  const decodedSlug = decodeURIComponent(slug);
 
-  const post = await getPostBySlug(decodedSlug);
+  let post = null;
+  try {
+    post = await getPostBySlug(decodedSlug);
+  } catch (e) {}
+
+  // Fallback to editorial articles if CMS returns null
+  if (!post) {
+    const fallback = getEditorialArticleBySlug(decodedSlug);
+    if (fallback) {
+      post = convertEditorialToQuantaArticle(fallback);
+    }
+  }
 
   if (!post) {
     notFound();
@@ -56,52 +81,52 @@ export default async function BlogPost({ params }: Props) {
     description: post.excerpt,
   };
 
+  const categoryName = post.categories?.[0]?.name || 'Editorial';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-maroon-900 selection:text-white">
+    <div className="min-h-screen bg-stone-50 text-stone-900 pt-28 pb-24 font-sans selection:bg-[#7B1123] selection:text-white">
       
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <nav className="border-b border-white/10 bg-slate-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/blog" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition">
-            <ArrowLeft className="w-4 h-4" /> Back to Blog
-          </Link>
-          <div className="font-serif font-bold text-lg">Hero<span className="text-maroon-500">Zodiac</span></div>
-          <button className="text-slate-400 hover:text-gold-400"><Share2 className="w-5 h-5" /></button>
-        </div>
-      </nav>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <Link href="/blog" className="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-stone-900 transition">
+          <FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" />
+          <span>Back to Cosmic Wisdom Blog</span>
+        </Link>
+      </div>
 
-      {/* REST OF YOUR JSX IS FINE (Copy from previous response) */}
-      <header className="relative py-20 border-b border-white/5">
-        <div className="container mx-auto px-6 max-w-5xl text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-maroon-900/30 border border-maroon-500/30 text-maroon-300 text-xs font-bold uppercase tracking-wider mb-6">
-            Astrology
+      <header className="relative py-12 border-b border-stone-200 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#7B1123]/10 text-[#7B1123] text-xs font-bold uppercase tracking-wider mb-6 border border-[#7B1123]/20">
+            {categoryName}
           </div>
-          <h1 className="text-4xl md:text-6xl font-serif font-bold text-white mb-8 leading-tight">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-serif font-bold text-stone-900 mb-6 leading-tight">
             {post.title}
           </h1>
           
-          <div className="flex items-center justify-center gap-6 text-sm text-slate-400 font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs sm:text-sm text-stone-500 font-medium">
              <div className="flex items-center gap-2">
-                <User className="w-4 h-4" /> <span>HeroZodiac Team</span>
+                <FontAwesomeIcon icon={faUser} className="w-3.5 h-3.5 text-[#7B1123]" />
+                <span>HeroZodiac Editorial</span>
              </div>
              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> 
-                <span>{new Date(post.published_at).toLocaleDateString()}</span>
+                <FontAwesomeIcon icon={faCalendarDays} className="w-3.5 h-3.5" /> 
+                <span>{new Date(post.published_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
              </div>
              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" /> <span>5 min read</span>
+                <FontAwesomeIcon icon={faClock} className="w-3.5 h-3.5" />
+                <span>6 min read</span>
              </div>
           </div>
         </div>
       </header>
 
-      {post.featured_image && (
-        <div className="container mx-auto px-6 max-w-5xl -mt-10 mb-12">
-           <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+      {post.featured_image?.file_url && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 my-10">
+           <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-stone-200 shadow-lg bg-stone-100">
               <img 
                 src={post.featured_image.file_url} 
                 alt={post.title} 
@@ -111,38 +136,13 @@ export default async function BlogPost({ params }: Props) {
         </div>
       )}
 
-      <main className="container mx-auto px-6 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          
-          <article className="lg:col-span-8">
-             <div className="bg-slate-900/30 border border-white/5 p-8 md:p-12 rounded-2xl">
-                <ContentRenderer content={post.content} />
-             </div>
-             <AdSpot type="leaderboard" label="Sponsored Content" />
-          </article>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 pb-24">
+        <article className="bg-white border border-stone-200 p-8 sm:p-12 rounded-2xl shadow-sm">
+           <ContentRenderer content={post.content} />
+        </article>
 
-          <aside className="lg:col-span-4 space-y-8">
-             <div className="sticky top-24">
-                <AdSpot type="rectangle" label="Partner Ad" />
-                
-                <div className="bg-slate-900 border border-white/10 rounded-xl p-6">
-                   <h3 className="font-serif font-bold text-xl text-white mb-4">Trending Now</h3>
-                   <ul className="space-y-4">
-                      <li className="group cursor-pointer">
-                         <div className="text-xs text-maroon-400 font-bold mb-1">COMPATIBILITY</div>
-                         <div className="text-slate-300 group-hover:text-gold-400 transition text-sm font-medium">
-                            Why Scorpio and Leo are a dangerous match.
-                         </div>
-                      </li>
-                   </ul>
-                </div>
-
-                <div className="mt-8">
-                   <AdSpot type="sidebar" label="Featured Partner" />
-                </div>
-             </div>
-          </aside>
-
+        <div className="mt-12">
+          <AdSpot type="leaderboard" label="Sponsored Wisdom" />
         </div>
       </main>
     </div>
